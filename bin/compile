@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -e
+
+BUILD_DIR="$1"
+VENDOR_DIR="$BUILD_DIR/vendor"
+TESS_VER="5.5.0"
+LEP_VER="1.85.0"
+
+echo "-----> Installing Leptonica $LEP_VER"
+mkdir -p "$VENDOR_DIR"
+cd /tmp
+curl -sL "https://github.com/DanBloomberg/leptonica/releases/download/${LEP_VER}/leptonica-${LEP_VER}.tar.gz" | tar xz
+cd "leptonica-${LEP_VER}"
+./configure --prefix="$VENDOR_DIR"
+make -j"$(nproc)" && make install
+
+echo "-----> Installing Tesseract $TESS_VER"
+cd /tmp
+curl -sL "https://github.com/tesseract-ocr/tesseract/archive/refs/tags/${TESS_VER}.tar.gz" | tar xz
+cd "tesseract-${TESS_VER}"
+./autogen.sh
+./configure --prefix="$VENDOR_DIR" --with-libleptonica-prefix="$VENDOR_DIR"
+make -j"$(nproc)" && make install
+
+echo "-----> Downloading English traineddata"
+mkdir -p "$VENDOR_DIR/share/tessdata"
+curl -sL "https://github.com/tesseract-ocr/tessdata_best/raw/main/eng.traineddata" -o "$VENDOR_DIR/share/tessdata/eng.traineddata"
+
+echo "-----> Creating runtime profile script"
+mkdir -p "$BUILD_DIR/.profile.d"
+cat > "$BUILD_DIR/.profile.d/tesseract.sh" <<'EOF'
+export PATH="$HOME/vendor/bin:$PATH"
+export LD_LIBRARY_PATH="$HOME/vendor/lib:$LD_LIBRARY_PATH"
+export TESSDATA_PREFIX="$HOME/vendor/share/tessdata"
+EOF
+
+echo "-----> Tesseract $TESS_VER installed"

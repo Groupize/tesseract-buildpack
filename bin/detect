@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Always detect this buildpack
+echo "tesseract"
+exit 0

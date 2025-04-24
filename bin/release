@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+cat <<EOF
+---
+config_vars:
+  PATH: "/app/vendor/bin:\$PATH"
+  LD_LIBRARY_PATH: "/app/vendor/lib:\$LD_LIBRARY_PATH"
+  TESSDATA_PREFIX: "/app/vendor/share/tessdata"
+EOF
